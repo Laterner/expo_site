@@ -14,8 +14,10 @@ import secrets
 
 app = FastAPI(title="Event Agency", version="1.0.0")
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=base_dir+"/static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
@@ -171,18 +173,15 @@ async def view_contacts(
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Формируем запрос в зависимости от поиска
     if search:
         like = f"%{search}%"
 
-        # Считаем количество
         cursor.execute('''
             SELECT COUNT(*) FROM contacts 
             WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
         ''', (like, like, like))
         total_count = cursor.fetchone()[0]
 
-        # Получаем записи
         cursor.execute('''
             SELECT * FROM contacts 
             WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
@@ -192,11 +191,9 @@ async def view_contacts(
         contacts = cursor.fetchall()
 
     else:
-        # Считаем количество
         cursor.execute('SELECT COUNT(*) FROM contacts')
         total_count = cursor.fetchone()[0]
 
-        # Получаем записи
         cursor.execute('''
             SELECT * FROM contacts 
             ORDER BY created_at DESC 
