@@ -3,7 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from typing import Optional
 import sqlite3
@@ -38,8 +39,7 @@ def init_db():
             email TEXT NOT NULL,
             phone TEXT,
             message TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            ip_address TEXT
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     conn.commit()
@@ -57,9 +57,13 @@ def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
     return credentials.username
 
 # Initialize database on startup
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
     init_db()
+
+app = FastAPI(lifespan=lifespan)
+
 
 class ContactRequest(BaseModel):
     name: str
@@ -67,7 +71,7 @@ class ContactRequest(BaseModel):
     phone: Optional[str] = None
     message: str
 
-    @validator('name')
+    @field_validator('name')
     def validate_name(cls, v):
         if len(v.strip()) < 2:
             raise ValueError('Имя должно содержать минимум 2 символа')
@@ -78,7 +82,7 @@ class ContactRequest(BaseModel):
             raise ValueError('Имя содержит недопустимые символы')
         return v.strip()
 
-    @validator('phone')
+    @field_validator('phone')
     def validate_phone(cls, v):
         if v is None:
             return v
@@ -90,18 +94,13 @@ class ContactRequest(BaseModel):
             raise ValueError('Номер телефона слишком длинный')
         return cleaned_phone
 
-    @validator('message')
+    @field_validator('message')
     def validate_message(cls, v):
-        if len(v.strip()) < 10:
+        if len(v.strip()) < 5:
             raise ValueError('Сообщение должно содержать минимум 10 символов')
         if len(v) > 1000:
             raise ValueError('Сообщение слишком длинное')
         return v.strip()
-
-def get_client_ip(request: Request):
-    if "x-forwarded-for" in request.headers:
-        return request.headers["x-forwarded-for"].split(",")[0]
-    return request.client.host
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -110,22 +109,19 @@ async def read_root(request: Request):
 @app.post("/contact")
 async def contact_us(contact: ContactRequest, request: Request):
     try:
-        client_ip = get_client_ip(request)
-        
         # Подключение к базе данных
         conn = get_db_connection()
         cursor = conn.cursor()
         
         # Безопасная вставка с параметризованным запросом
         cursor.execute('''
-            INSERT INTO contacts (name, email, phone, message, ip_address, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO contacts (name, email, phone, message, created_at)
+            VALUES (?, ?, ?, ?, ?)
         ''', (
             contact.name,
             contact.email,
             contact.phone,
             contact.message,
-            client_ip,
             datetime.datetime.now()
         ))
         
@@ -134,7 +130,7 @@ async def contact_us(contact: ContactRequest, request: Request):
         conn.close()
         
         # Логирование успешной отправки (в продакшене лучше использовать logging)
-        print(f"Новый контакт сохранен: ID {contact_id}, Email: {contact.email}, IP: {client_ip}")
+        print(f"Новый контакт сохранен: ID {contact_id}, Email: {contact.email}")
         
         return JSONResponse({
             "status": "success",
@@ -177,31 +173,40 @@ async def view_contacts(
     
     # Формируем запрос в зависимости от поиска
     if search:
+        like = f"%{search}%"
+
+        # Считаем количество
         cursor.execute('''
             SELECT COUNT(*) FROM contacts 
             WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
-        ''', (f'%{search}%', f'%{search}%', f'%{search}%'))
-        
+        ''', (like, like, like))
+        total_count = cursor.fetchone()[0]
+
+        # Получаем записи
         cursor.execute('''
             SELECT * FROM contacts 
             WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
             ORDER BY created_at DESC 
             LIMIT ? OFFSET ?
-        ''', (f'%{search}%', f'%{search}%', f'%{search}%', limit, offset))
+        ''', (like, like, like, limit, offset))
+        contacts = cursor.fetchall()
+
     else:
+        # Считаем количество
         cursor.execute('SELECT COUNT(*) FROM contacts')
+        total_count = cursor.fetchone()[0]
+
+        # Получаем записи
         cursor.execute('''
             SELECT * FROM contacts 
             ORDER BY created_at DESC 
             LIMIT ? OFFSET ?
         ''', (limit, offset))
-    
-    total_count = cursor.fetchone()[0]
-    contacts = cursor.fetchall()
-    
-    conn.close()
+        contacts = cursor.fetchall()
     
     total_pages = (total_count + limit - 1) // limit
+    
+    conn.close()
     
     return templates.TemplateResponse("admin_contacts.html", {
         "request": request,
@@ -211,7 +216,7 @@ async def view_contacts(
         "search": search or "",
         "total_count": total_count
     })
-
+    
 @app.delete("/admin/contacts/{contact_id}")
 async def delete_contact(contact_id: int):
     """
@@ -222,14 +227,14 @@ async def delete_contact(contact_id: int):
         cursor = conn.cursor()
         
         # Проверяем существование контакта
-        cursor.execute('SELECT id FROM contacts WHERE id = ?', (contact_id,))
+        cursor.execute('SELECT id FROM contacts WHERE id = ?', (contact_id))
         contact = cursor.fetchone()
         
         if not contact:
             raise HTTPException(status_code=404, detail="Контакт не найден")
         
         # Безопасное удаление
-        cursor.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
+        cursor.execute('DELETE FROM contacts WHERE id = ?', (contact_id))
         conn.commit()
         conn.close()
         

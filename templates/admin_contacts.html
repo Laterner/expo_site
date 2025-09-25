@@ -142,8 +142,8 @@
             white-space: nowrap;
         }
 
-        .delete-btn {
-            background: #ff6b6b;
+        .open-btn {
+            background: #173ce0ff;
             color: white;
             border: none;
             padding: 5px 10px;
@@ -152,8 +152,8 @@
             font-size: 0.8rem;
         }
 
-        .delete-btn:hover {
-            background: #ff5252;
+        .open-btn:hover {
+            background: #173ce09c;
         }
 
         .pagination {
@@ -212,7 +212,7 @@
         </div>
         <div class="admin-nav">
             <a href="/"><i class="fas fa-home"></i> На сайт</a>
-            <a href="/admin/contacts?username={{ request.query_params.username }}&password={{ request.query_params.password }}"><i class="fas fa-sync"></i> Обновить</a>
+            <a href="/admin/contacts"><i class="fas fa-sync"></i> Обновить</a>
         </div>
     </div>
 
@@ -230,12 +230,12 @@
 
         <div class="search-box">
             <form class="search-form" method="get">
-                <input type="hidden" name="username" value="{{ request.query_params.username }}">
-                <input type="hidden" name="password" value="{{ request.query_params.password }}">
+                <!-- <input type="hidden" name="username" value="{{ request.query_params.username }}">
+                <input type="hidden" name="password" value="{{ request.query_params.password }}">-->
                 <input type="text" name="search" value="{{ search }}" placeholder="Поиск по имени, email или телефону..." class="search-input">
                 <button type="submit" class="search-btn"><i class="fas fa-search"></i> Найти</button>
                 {% if search %}
-                <a href="/admin/contacts?username={{ request.query_params.username }}&password={{ request.query_params.password }}" class="page-btn">Сбросить</a>
+                <a href="/admin/contacts" class="page-btn">Сбросить</a>
                 {% endif %}
             </form>
         </div>
@@ -251,7 +251,6 @@
                         <th>Телефон</th>
                         <th>Сообщение</th>
                         <th>Дата</th>
-                        <th>IP</th>
                         <th>Действия</th>
                     </tr>
                 </thead>
@@ -264,16 +263,15 @@
                         <td>{{ contact.phone or '-' }}</td>
                         <td class="message-cell" title="{{ contact.message }}">{{ contact.message[:50] }}{% if contact.message|length > 50 %}...{% endif %}</td>
                         <td>{{ contact.created_at }}</td>
-                        <td>{{ contact.ip_address }}</td>
-                        <td>
+                        <!-- <td>
                             <form action="/admin/contacts/{{ contact.id }}/delete" method="post" style="display: inline;">
                                 <input type="hidden" name="username" value="{{ request.query_params.username }}">
                                 <input type="hidden" name="password" value="{{ request.query_params.password }}">
-                                <button type="submit" class="delete-btn" onclick="return confirm('Удалить контакт?')">
-                                    <i class="fas fa-trash"></i> Удалить
+                                <button type="submit" class="open-btn" onclick="return confirm('Открыть контакт?')" disabled>
+                                    Открыть
                                 </button>
                             </form>
-                        </td>
+                        </td> -->
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -283,7 +281,7 @@
         {% if total_pages > 1 %}
         <div class="pagination">
             {% if page > 1 %}
-            <a href="/admin/contacts?username={{ request.query_params.username }}&password={{ request.query_params.password }}&page={{ page-1 }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">
+            <a href="/admin/contacts?page={{ page-1 }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">
                 <i class="fas fa-chevron-left"></i> Назад
             </a>
             {% endif %}
@@ -291,7 +289,7 @@
             <span class="page-info">Страница {{ page }} из {{ total_pages }}</span>
             
             {% if page < total_pages %}
-            <a href="/admin/contacts?username={{ request.query_params.username }}&password={{ request.query_params.password }}&page={{ page+1 }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">
+            <a href="/admin/contacts?page={{ page+1 }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">
                 Вперед <i class="fas fa-chevron-right"></i>
             </a>
             {% endif %}

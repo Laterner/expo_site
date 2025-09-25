@@ -5,10 +5,45 @@ def view_contacts():
     conn = sqlite3.connect('contacts.db')
     cursor = conn.cursor()
     
-    cursor.execute('SELECT * FROM contacts ORDER BY created_at DESC')
-    contacts = cursor.fetchall()
+    page = 1
+    limit = 20
+    offset = (page - 1) * limit
+    search = "shvedskiy@maction.ru2"
     
-    print(f"Всего контактов: {len(contacts)}")
+    
+    if search:
+        like = f"%{search}%"
+
+        # Считаем количество
+        cursor.execute('''
+            SELECT COUNT(*) FROM contacts 
+            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+        ''', (like, like, like))
+        total_count = cursor.fetchone()[0]
+
+        # Получаем записи
+        cursor.execute('''
+            SELECT * FROM contacts 
+            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+            ORDER BY created_at DESC 
+            LIMIT ? OFFSET ?
+        ''', (like, like, like, limit, offset))
+        contacts = cursor.fetchall()
+
+    else:
+        # Считаем количество
+        cursor.execute('SELECT COUNT(*) FROM contacts')
+        total_count = cursor.fetchone()[0]
+
+        # Получаем записи
+        cursor.execute('''
+            SELECT * FROM contacts 
+            ORDER BY created_at DESC 
+            LIMIT ? OFFSET ?
+        ''', (limit, offset))
+        contacts = cursor.fetchall()
+    
+    print(f"Всего контактов: {total_count}")
     print("-" * 80)
     
     for contact in contacts:
