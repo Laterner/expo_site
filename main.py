@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, Form
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -232,13 +232,13 @@ async def delete_contact(contact_id: int):
         conn.commit()
         conn.close()
         
-        return {"status": "success", "message": "Контакт удален"}
+        return RedirectResponse(url="/admin/contacts", status_code=303)
         
     except sqlite3.Error as e:
         raise HTTPException(status_code=500, detail="Ошибка базы данных")
 
 if __name__ == "__main__":
     import uvicorn
-    HOST_NAME = os.getenv('HOST_NAME')
-    HOST_PORT = os.getenv('HOST_PORT')
+    HOST_NAME = os.getenv('HOST_NAME', '0.0.0.0')
+    HOST_PORT = int(os.getenv('HOST_PORT'), 80)
     uvicorn.run(app, host=HOST_NAME, port=HOST_PORT)
