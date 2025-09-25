@@ -12,16 +12,6 @@ import datetime
 import re, os
 import secrets
 
-app = FastAPI(title="Event Agency", version="1.0.0")
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
-# Setup templates
-templates = Jinja2Templates(directory="templates")
-security = HTTPBasic()
-
-# Загрузка переменных из .env файла
-load_dotenv()
 
 # Database setup
 def get_db_connection():
@@ -44,6 +34,24 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Initialize database on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    init_db()
+
+app = FastAPI(lifespan=lifespan)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup templates
+templates = Jinja2Templates(directory="templates")
+security = HTTPBasic()
+
+# Загрузка переменных из .env файла
+load_dotenv()
+
 def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, os.getenv('ADMIN_USERNAME'))
     correct_password = secrets.compare_digest(credentials.password, os.getenv('ADMIN_PASSWORD'))
@@ -54,15 +62,6 @@ def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Basic"},
         )
     return credentials.username
-
-# Initialize database on startup
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    yield
-    init_db()
-
-app = FastAPI(lifespan=lifespan)
-
 
 class ContactRequest(BaseModel):
     name: str
