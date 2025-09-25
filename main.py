@@ -14,11 +14,8 @@ import secrets
 
 app = FastAPI(title="Event Agency", version="1.0.0")
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-
 # Mount static files
-app.mount("/static", StaticFiles(directory=base_dir+"/static"), name="static")
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 # Setup templates
 templates = Jinja2Templates(directory="templates")
 security = HTTPBasic()
