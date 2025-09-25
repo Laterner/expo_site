@@ -13,16 +13,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Form submission
+    // Form submission with validation
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(contactForm);
-            const data = Object.fromEntries(formData);
+            const submitButton = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
+            // Показываем индикатор загрузки
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             
             try {
+                const formData = new FormData(contactForm);
+                const data = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    message: formData.get('message')
+                };
+                
                 const response = await fetch('/contact', {
                     method: 'POST',
                     headers: {
@@ -33,15 +45,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const result = await response.json();
                 
+                if (!response.ok) {
+                    throw new Error(result.detail || 'Ошибка сервера');
+                }
+                
                 if (result.status === 'success') {
-                    alert(result.message);
+                    showNotification(result.message, 'success');
                     contactForm.reset();
                 } else {
-                    alert('Ошибка при отправке формы. Попробуйте еще раз.');
+                    throw new Error(result.message || 'Неизвестная ошибка');
                 }
             } catch (error) {
-                alert('Ошибка при отправке формы. Попробуйте еще раз.');
+                console.error('Ошибка:', error);
+                showNotification(error.message || 'Ошибка при отправке формы. Попробуйте еще раз.', 'error');
+            } finally {
+                // Восстанавливаем кнопку
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
             }
+        });
+    }
+
+    // Валидация формы в реальном времени
+    if (contactForm) {
+        const inputs = contactForm.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                clearFieldError(this);
+            });
         });
     }
 
@@ -78,3 +113,140 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 });
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Стили для уведомлений
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#4ecdc4' : '#ff6b6b'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 10000;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматическое скрытие через 5 секунд
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Валидация поля
+function validateField(field) {
+    const value = field.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+    
+    switch(field.name) {
+        case 'name':
+            if (value.length < 2) {
+                isValid = false;
+                errorMessage = 'Имя должно содержать минимум 2 символа';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'Имя слишком длинное';
+            }
+            break;
+            
+        case 'email':
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Введите корректный email адрес';
+            }
+            break;
+            
+        case 'phone':
+            if (value) {
+                const cleanedPhone = value.replace(/[^\d+]/g, '');
+                if (cleanedPhone.length < 10) {
+                    isValid = false;
+                    errorMessage = 'Номер телефона слишком короткий';
+                }
+            }
+            break;
+            
+        case 'message':
+            if (value.length < 10) {
+                isValid = false;
+                errorMessage = 'Сообщение должно содержать минимум 10 символов';
+            } else if (value.length > 1000) {
+                isValid = false;
+                errorMessage = 'Сообщение слишком длинное';
+            }
+            break;
+    }
+    
+    if (!isValid) {
+        showFieldError(field, errorMessage);
+    } else {
+        clearFieldError(field);
+    }
+    
+    return isValid;
+}
+
+// Показать ошибку поля
+function showFieldError(field, message) {
+    clearFieldError(field);
+    
+    field.style.borderColor = '#ff6b6b';
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    errorDiv.style.cssText = `
+        color: #ff6b6b;
+        font-size: 0.8rem;
+        margin-top: 5px;
+    `;
+    
+    field.parentNode.appendChild(errorDiv);
+}
+
+// Очистить ошибку поля
+function clearFieldError(field) {
+    field.style.borderColor = '';
+    
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+// Добавляем CSS анимации для уведомлений
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);

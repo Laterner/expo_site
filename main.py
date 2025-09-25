@@ -1,13 +1,15 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, EmailStr, validator
 from dotenv import load_dotenv
 from typing import Optional
 import sqlite3
 import datetime
 import re, os
+import secrets
 
 app = FastAPI(title="Event Agency", version="1.0.0")
 
@@ -16,6 +18,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Setup templates
 templates = Jinja2Templates(directory="templates")
+security = HTTPBasic()
 
 # Загрузка переменных из .env файла
 load_dotenv()
@@ -41,6 +44,17 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
+
+def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, os.getenv('ADMIN_USERNAME'))
+    correct_password = secrets.compare_digest(credentials.password, os.getenv('ADMIN_PASSWORD'))
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Неверные учетные данные",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
 # Initialize database on startup
 @app.on_event("startup")
@@ -142,34 +156,61 @@ async def contact_us(contact: ContactRequest, request: Request):
             detail="Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже."
         )
 
-# Дополнительные endpoints для администрирования (защищенные)
+# Страница администрирования
+@app.get("/admin")
+async def admin_login(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
+
+
 @app.get("/admin/contacts")
-async def get_contacts(limit: int = 100, offset: int = 0):
-    """
-    Endpoint для просмотра контактов (в реальном приложении нужно добавить аутентификацию)
-    """
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Безопасный запрос с параметрами
+async def view_contacts(
+    request: Request,
+    username: str = Depends(authenticate_user),
+    page: int = 1,
+    search: str = None
+):
+    limit = 20
+    offset = (page - 1) * limit
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Формируем запрос в зависимости от поиска
+    if search:
         cursor.execute('''
-            SELECT id, name, email, phone, message, created_at, ip_address
-            FROM contacts 
+            SELECT COUNT(*) FROM contacts 
+            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+        ''', (f'%{search}%', f'%{search}%', f'%{search}%'))
+        
+        cursor.execute('''
+            SELECT * FROM contacts 
+            WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+            ORDER BY created_at DESC 
+            LIMIT ? OFFSET ?
+        ''', (f'%{search}%', f'%{search}%', f'%{search}%', limit, offset))
+    else:
+        cursor.execute('SELECT COUNT(*) FROM contacts')
+        cursor.execute('''
+            SELECT * FROM contacts 
             ORDER BY created_at DESC 
             LIMIT ? OFFSET ?
         ''', (limit, offset))
-        
-        contacts = cursor.fetchall()
-        conn.close()
-        
-        return {
-            "contacts": [dict(contact) for contact in contacts],
-            "total": len(contacts)
-        }
-        
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail="Ошибка базы данных")
+    
+    total_count = cursor.fetchone()[0]
+    contacts = cursor.fetchall()
+    
+    conn.close()
+    
+    total_pages = (total_count + limit - 1) // limit
+    
+    return templates.TemplateResponse("admin_contacts.html", {
+        "request": request,
+        "contacts": contacts,
+        "page": page,
+        "total_pages": total_pages,
+        "search": search or "",
+        "total_count": total_count
+    })
 
 @app.delete("/admin/contacts/{contact_id}")
 async def delete_contact(contact_id: int):
