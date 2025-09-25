@@ -331,11 +331,13 @@ body {
 }
 
 .portfolio-image {
-    width: 100%;
-    height: 200px;
     background: #3a3a3a;
 }
-
+.portfolio-image img {
+    width: 100%;
+    height: auto;
+    background: #3a3a3a;
+}
 .portfolio-info {
     padding: 1.5rem;
 }
