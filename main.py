@@ -86,6 +86,7 @@ class ContactRequest(BaseModel):
             return v
         # Очистка номера от лишних символов
         cleaned_phone = re.sub(r'[^\d+]', '', v)
+        cleaned_phone = cleaned_phone.replace('+8', '+7')
         if len(cleaned_phone) < 10:
             raise ValueError('Номер телефона слишком короткий')
         if len(cleaned_phone) > 20:
@@ -94,7 +95,7 @@ class ContactRequest(BaseModel):
 
     @field_validator('message')
     def validate_message(cls, v):
-        if len(v.strip()) < 5:
+        if len(v.strip()) < 10:
             raise ValueError('Сообщение должно содержать минимум 10 символов')
         if len(v) > 1000:
             raise ValueError('Сообщение слишком длинное')

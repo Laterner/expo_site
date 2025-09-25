@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -16,16 +16,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission with validation
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
-        contactForm.addEventListener('submit', async function(e) {
+        contactForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const submitButton = contactForm.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
-            
+
             // Показываем индикатор загрузки
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
-            
+
             try {
                 const formData = new FormData(contactForm);
                 const data = {
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     phone: formData.get('phone'),
                     message: formData.get('message')
                 };
-                
+
                 const response = await fetch('/contact', {
                     method: 'POST',
                     headers: {
@@ -42,13 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify(data),
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(result.detail || 'Ошибка сервера');
                 }
-                
+
                 if (result.status === 'success') {
                     showNotification(result.message, 'success');
                     contactForm.reset();
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(result.message || 'Неизвестная ошибка');
                 }
             } catch (error) {
-                console.error('Ошибка:', error);
-                showNotification(error.message || 'Ошибка при отправке формы. Попробуйте еще раз.', 'error');
+                console.error('Ошибка отправки запроса на сервер:', error.message);
+                showNotification('Проверьте правильность заполнения данных', 'error');
             } finally {
                 // Восстанавливаем кнопку
                 submitButton.disabled = false;
@@ -70,11 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contactForm) {
         const inputs = contactForm.querySelectorAll('input, textarea');
         inputs.forEach(input => {
-            input.addEventListener('blur', function() {
+            input.addEventListener('blur', function () {
                 validateField(this);
             });
-            
-            input.addEventListener('input', function() {
+
+            input.addEventListener('input', function () {
                 clearFieldError(this);
             });
         });
@@ -112,6 +112,33 @@ document.addEventListener('DOMContentLoaded', function() {
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
+
+    var eventCalllback = function (e) {
+        var el = e.target,
+            clearVal = el.dataset.phoneClear,
+            pattern = el.dataset.phonePattern,
+            matrix_def = "+7(___) ___-__-__",
+            matrix = pattern ? pattern : matrix_def,
+            i = 0,
+            def = matrix.replace(/\D/g, ""),
+            val = e.target.value.replace(/\D/g, "");
+        if (clearVal !== 'false' && e.type === 'blur') {
+            if (val.length < matrix.match(/([\_\d])/g).length) {
+                e.target.value = '';
+                return;
+            }
+        }
+        if (def.length >= val.length) val = def;
+        e.target.value = matrix.replace(/./g, function (a) {
+            return /[_\d]/.test(a) && i < val.length ? val.charAt(i++) : i >= val.length ? "" : a
+        });
+    }
+    var phone_inputs = document.querySelectorAll('[data-phone-pattern]');
+    for (let elem of phone_inputs) {
+        for (let ev of ['input', 'blur', 'focus']) {
+            elem.addEventListener(ev, eventCalllback);
+        }
+    }
 });
 
 // Функция для показа уведомлений
@@ -124,7 +151,7 @@ function showNotification(message, type = 'info') {
             <span>${message}</span>
         </div>
     `;
-    
+
     // Стили для уведомлений
     notification.style.cssText = `
         position: fixed;
@@ -139,9 +166,9 @@ function showNotification(message, type = 'info') {
         box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         animation: slideIn 0.3s ease;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Автоматическое скрытие через 5 секунд
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
@@ -158,8 +185,8 @@ function validateField(field) {
     const value = field.value.trim();
     let isValid = true;
     let errorMessage = '';
-    
-    switch(field.name) {
+
+    switch (field.name) {
         case 'name':
             if (value.length < 2) {
                 isValid = false;
@@ -169,7 +196,7 @@ function validateField(field) {
                 errorMessage = 'Имя слишком длинное';
             }
             break;
-            
+
         case 'email':
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(value)) {
@@ -177,17 +204,34 @@ function validateField(field) {
                 errorMessage = 'Введите корректный email адрес';
             }
             break;
-            
+
         case 'phone':
             if (value) {
-                const cleanedPhone = value.replace(/[^\d+]/g, '');
-                if (cleanedPhone.length < 10) {
-                    isValid = false;
-                    errorMessage = 'Номер телефона слишком короткий';
+                // const cleanedPhone = value.replace(/[^\d+]/g, '');
+                // if (cleanedPhone.length < 10) {
+                //     isValid = false;
+                //     errorMessage = 'Номер телефона слишком короткий';
+                // }
+                clearVal = el.dataset.phoneClear,
+                    pattern = el.dataset.phonePattern,
+                    matrix_def = "+7(___) ___-__-__",
+                    matrix = pattern ? pattern : matrix_def,
+                    i = 0,
+                    def = matrix.replace(/\D/g, ""),
+                    val = e.target.value.replace(/\D/g, "");
+                if (clearVal !== 'false' && e.type === 'blur') {
+                    if (val.length < matrix.match(/([\_\d])/g).length) {
+                        e.target.value = '';
+                        return;
+                    }
                 }
+                if (def.length >= val.length) val = def;
+                e.target.value = matrix.replace(/./g, function (a) {
+                    return /[_\d]/.test(a) && i < val.length ? val.charAt(i++) : i >= val.length ? "" : a
+                });
             }
             break;
-            
+
         case 'message':
             if (value.length < 10) {
                 isValid = false;
@@ -198,22 +242,22 @@ function validateField(field) {
             }
             break;
     }
-    
+
     if (!isValid) {
         showFieldError(field, errorMessage);
     } else {
         clearFieldError(field);
     }
-    
+
     return isValid;
 }
 
 // Показать ошибку поля
 function showFieldError(field, message) {
     clearFieldError(field);
-    
+
     field.style.borderColor = '#ff6b6b';
-    
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'field-error';
     errorDiv.textContent = message;
@@ -222,14 +266,14 @@ function showFieldError(field, message) {
         font-size: 0.8rem;
         margin-top: 5px;
     `;
-    
+
     field.parentNode.appendChild(errorDiv);
 }
 
 // Очистить ошибку поля
 function clearFieldError(field) {
     field.style.borderColor = '';
-    
+
     const existingError = field.parentNode.querySelector('.field-error');
     if (existingError) {
         existingError.remove();
