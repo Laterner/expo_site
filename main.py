@@ -240,5 +240,5 @@ async def delete_contact(contact_id: int):
 if __name__ == "__main__":
     import uvicorn
     HOST_NAME = os.getenv('HOST_NAME', '0.0.0.0')
-    HOST_PORT = int(os.getenv('HOST_PORT'), 80)
+    HOST_PORT = int(os.getenv('HOST_PORT', 80))
     uvicorn.run(app, host=HOST_NAME, port=HOST_PORT)
