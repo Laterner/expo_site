@@ -223,7 +223,7 @@ async def view_contact(
     
     # print('contact_id::', contact_id)
     
-    cursor.execute('SELECT * FROM contacts WHERE id = 6')
+    cursor.execute(f'SELECT * FROM contacts WHERE id = {contact_id}') # разобраться что за прикол
     contact = cursor.fetchone()
     
     conn.close()
