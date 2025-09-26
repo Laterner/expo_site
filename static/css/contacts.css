@@ -1,0 +1,197 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+.admin-header {
+    background: rgba(42, 42, 42, 0.95);
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.logo h1 {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
+}
+
+.admin-nav a {
+    color: #4ecdc4;
+    text-decoration: none;
+    margin-left: 1rem;
+}
+
+.admin-nav a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: rgba(42, 42, 42, 0.7);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.search-box {
+    background: rgba(42, 42, 42, 0.7);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #2a2a2a;
+    color: #ffffff;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.contacts-table {
+    width: 100%;
+    background: rgba(42, 42, 42, 0.7);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    background: rgba(78, 205, 196, 0.2);
+    font-weight: 600;
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.message-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.open-btn {
+    background: #173ce0ff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.open-btn:hover {
+    background: #173ce09c;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.page-btn {
+    padding: 8px 16px;
+    background: rgba(78, 205, 196, 0.2);
+    color: #4ecdc4;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.page-btn:hover {
+    background: rgba(78, 205, 196, 0.3);
+}
+
+.page-info {
+    color: #cccccc;
+}
+
+.no-contacts {
+    text-align: center;
+    padding: 3rem;
+    color: #cccccc;
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .contacts-table {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 800px;
+    }
+}

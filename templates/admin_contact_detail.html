@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакт #{{ contact.id }} - Админ-панель</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .admin-header {
+            background: rgba(42, 42, 42, 0.95);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo h1 {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+        }
+
+        .admin-nav a {
+            color: #4ecdc4;
+            text-decoration: none;
+            margin-left: 1rem;
+            padding: 8px 16px;
+            border: 1px solid #4ecdc4;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-nav a:hover {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-link {
+            margin-bottom: 2rem;
+        }
+
+        .back-link a {
+            color: #4ecdc4;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .contact-card {
+            background: rgba(42, 42, 42, 0.7);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .contact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .contact-title h2 {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+        }
+
+        .contact-id {
+            color: #cccccc;
+            font-size: 1rem;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #cccccc;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .contact-details {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .detail-group {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .detail-label {
+            color: #4ecdc4;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            color: #ffffff;
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        .message-content {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #4ecdc4;
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .meta-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .meta-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .meta-label {
+            color: #cccccc;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .delete-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .contact-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .detail-group {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .meta-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="logo">
+            <h1><i class="fas fa-user-circle"></i> Просмотр контакта</h1>
+        </div>
+        <div class="admin-nav">
+            <!--
+            <a href="/admin/contacts">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
+            -->
+            <a href="/admin/contacts">
+                <i class="fas fa-list"></i> Все контакты
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="back-link">
+            <a href="/admin/contacts">
+                <i class="fas fa-chevron-left"></i> Вернуться к списку контактов
+            </a>
+        </div>
+
+        <div class="contact-card">
+            <div class="contact-header">
+                <div class="contact-title">
+                    <h2>{{ contact.name }}</h2>
+                    <div class="contact-id">ID: #{{ contact.id }}</div>
+                </div>
+                <div class="contact-actions">
+                    <a href="mailto:{{ contact.email }}" class="btn btn-secondary">
+                        <i class="fas fa-envelope"></i> Написать
+                    </a>
+                    {% if contact.phone %}
+                    <a href="tel:{{ contact.phone }}" class="btn btn-secondary">
+                        <i class="fas fa-phone"></i> Позвонить
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-danger" onclick="showDeleteModal()">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+
+            <div class="contact-details">
+                <div class="detail-group">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">
+                        <a href="mailto:{{ contact.email }}" style="color: #4ecdc4; text-decoration: none;">
+                            {{ contact.email }}
+                        </a>
+                    </div>
+                </div>
+
+                {% if contact.phone %}
+                <div class="detail-group">
+                    <div class="detail-label">Телефон</div>
+                    <div class="detail-value">
+                        <a href="tel:{{ contact.phone }}" style="color: #4ecdc4; text-decoration: none;">
+                            {{ contact.phone }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="detail-group">
+                    <div class="detail-label">Сообщение</div>
+                    <div class="detail-value">
+                        <div class="message-content">{{ contact.message }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-info">
+                <div class="meta-item">
+                    <div class="meta-label">Дата создания</div>
+                    <div class="meta-value">{{ contact.created_at }}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Статус</div>
+                    <div class="meta-value" style="color: #4ecdc4;">Активен</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="delete-modal" id="deleteModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1rem; color: #ff6b6b;">
+                <i class="fas fa-exclamation-triangle"></i> Подтверждение удаления
+            </h3>
+            <p>Вы уверены, что хотите удалить контакт <strong>{{ contact.name }}</strong>?</p>
+            <p style="color: #cccccc; font-size: 0.9rem; margin-top: 0.5rem;">
+                Это действие нельзя будет отменить.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideDeleteModal()">
+                    <i class="fas fa-times"></i> Отмена
+                </button>
+                <form action="/admin/contacts/{{ contact.id }}/delete" method="post" style="display: inline;">
+                    <input type="hidden" name="username" value="{{ request.query_params.username }}">
+                    <input type="hidden" name="password" value="{{ request.query_params.password }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteModal();
+            }
+        });
+
+        // Закрытие модального окна по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideDeleteModal();
+            }
+        });
+    </script>
+</body>
+</html>

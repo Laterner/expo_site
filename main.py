@@ -210,7 +210,33 @@ async def view_contacts(
         "search": search or "",
         "total_count": total_count
     })
+
+# Страница просмотра конкретного контакта
+@app.get("/admin/contacts/{contact_id}")
+async def view_contact(
+    request: Request,
+    contact_id: int,
+    username: str = Depends(authenticate_user)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
+    # print('contact_id::', contact_id)
+    
+    cursor.execute('SELECT * FROM contacts WHERE id = 6')
+    contact = cursor.fetchone()
+    
+    conn.close()
+    
+    if not contact:
+        raise HTTPException(status_code=404, detail="Контакт не найден")
+    
+    return templates.TemplateResponse("admin_contact_detail.html", {
+        "request": request,
+        "contact": contact
+    })
+
+
 @app.delete("/admin/contacts/{contact_id}")
 async def delete_contact(contact_id: int):
     """
