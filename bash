@@ -8,3 +8,4 @@ sudo systemctl stop expo
 
 # Проверить логи:
 journalctl -u expo -f
+# systemctl restart expo

@@ -1,4 +1,4 @@
 #!/bin/bash
 
 git pull
-systemctl restart expo
+docker compose up -d
