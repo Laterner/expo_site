@@ -1,43 +1,35 @@
 version: '3.8'
 
 services:
-  app:
-    build: ./app
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    volumes:
-      - ./app:/app
-    restart: unless-stopped
+    app:
+        build: ./app
+        ports:
+            - "8000:8000"
+        env_file:
+            - .env
+        volumes:
+            - ./app:/app
+        restart: unless-stopped
 
-  certbot:
-    ports:
-      - "6000:80"
-    env_file:
-      - .env
-    # и снова мониторуем директорию nginx
-    volumes:
-      - ./nginx/:/etc/nginx/
-    build:
-      context: ./certbot
-      dockerfile: Dockerfile
-      # задаем переменные среды
-      args:
-        DOMAIN_EMAIL: ${DOMAIN_EMAIL}
-        DOMAIN_URL: ${DOMAIN_URL}
+    nginx:
+        image: nginx:1.23.3
+        # монтируем директорию nginx и сертификат с ключом
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./nginx/cert.pem:/etc/cert.pem
+            - ./nginx/key.pem:/etc/key.pem
+        ports:
+            - "80:80"
+            - "443:443"
 
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./app:/app
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/cert.pem:/etc/cert.pem
-      - ./nginx/key.pem:/etc/key.pem
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - app
-    restart: unless-stopped
-  
+    certbot:
+        ports:
+            - "6000:80"
+        env_file:
+            - .env
+        # и снова мониторуем директорию nginx
+        volumes:
+            - ./nginx/:/etc/nginx/
+        build:
+            context: ./certbot
+            dockerfile: Dockerfile
