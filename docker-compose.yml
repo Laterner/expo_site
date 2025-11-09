@@ -18,6 +18,7 @@ services:
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
             - /etc/ssl/mosaction.ru.crt:/etc/ssl/mosaction.ru.crt
             - /etc/ssl/mosaction.ru.key:/etc/ssl/mosaction.ru.key
+            - /etc/ssl/ca.crt:/etc/ssl/ca.crt
             # - ./nginx/cert.pem:/etc/cert.pem
             # - ./nginx/key.pem:/etc/key.pem
         ports:
