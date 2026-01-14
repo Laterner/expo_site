@@ -296,7 +296,7 @@ style.textContent = `
 document.head.appendChild(style);
 
 
-// Добавьте этот код перед закрывающим тегом </body>
+/* Смена темы */
 const themeToggle = document.createElement('button');
 themeToggle.className = 'theme-toggle';
 themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
@@ -333,6 +333,7 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
 }
+
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
