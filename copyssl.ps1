@@ -1,0 +1,1 @@
+scp -r C:\Users\vany0\Desktop\expo_site\ssl root@92.242.61.35:~/expo_site
