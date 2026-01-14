@@ -14,9 +14,9 @@ services:
         # монтируем директорию nginx и сертификат с ключом
         volumes:
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-            - /etc/ssl/certificate.crt:/etc/ssl/mosaction.ru.crt
-            - /etc/ssl/certificate.key:/etc/ssl/mosaction.ru.key
-            - /etc/ssl/certificate_ca.crt:/etc/ssl/ca.crt
+            - ./ssl/certificate.crt:/etc/ssl/mosaction.ru.crt
+            - ./ssl/certificate.key:/etc/ssl/mosaction.ru.key
+            - ./ssl/certificate_ca.crt:/etc/ssl/ca.crt
         ports:
             - "80:80"
             - "443:443"
