@@ -1,8 +1,8 @@
 /* Добавляем CSS переменные для темной и светлой темы */
 :root {
-    --main-bg-color: rgba(10, 10, 10, 0.95);
+    --main-bg-color: #0a0a0a;
+    --bg-header-color: #16161669;
     --text-color: #ffffff;
-    --bg-color: #0a0a0a;
     --bg-secondary: #1a1a1a;
     --bg-tertiary: #2a2a2a;
     --bg-card: rgba(42, 42, 42, 0.7);
@@ -13,9 +13,9 @@
 }
 
 [data-theme="light"] {
-    --main-bg-color: rgba(255, 255, 255, 0.95);
+    --main-bg-color: #EDF2FB;
+    --bg-header-color: #d7e3fc69;
     --text-color: #333333;
-    --bg-color: #EDF2FB;
     --bg-secondary: #ffffff;
     --bg-tertiary: #E2EAFC;
     --bg-card: rgba(255, 255, 255, 0.9);
@@ -26,7 +26,7 @@
 }
 
 #root {
-    background-color: var(--bg-color);
+    background-color: var(--main-bg-color);
     min-height: 100vh;
     transition: background-color 0.3s ease;
 }
@@ -39,7 +39,7 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background: var(--bg-color);
+    background: var(--main-bg-color);
     color: var(--text-color);
     line-height: 1.6;
     overflow-x: hidden;
@@ -85,7 +85,7 @@ body {
     position: fixed;
     top: 0;
     width: 100%;
-    background: var(--main-bg-color);
+    background: var(--bg-header-color);
     backdrop-filter: blur(10px);
     z-index: 1000;
     padding: 1rem 0;
