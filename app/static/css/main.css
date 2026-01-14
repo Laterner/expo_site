@@ -217,14 +217,6 @@ body {
     border-radius: 50%;
     opacity: 0.3;
     animation: float 6s infinite ease-in-out;
-}
-
-.particle {
-    position: absolute;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-    border-radius: 50%;
-    opacity: 0.3;
-    animation: float 6s infinite ease-in-out;
     filter: blur(0.5px);
 }
 
