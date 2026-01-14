@@ -81,14 +81,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Header background on scroll
-    const header = document.querySelector('.header');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
-            header.style.background = 'rgba(10, 10, 10, 0.98)';
-        } else {
-            header.style.background = 'rgba(10, 10, 10, 0.95)';
-        }
-    });
+    // const header = document.querySelector('.header');
+    // window.addEventListener('scroll', () => {
+    //     if (window.scrollY > 100) {
+    //         header.style.background = 'rgba(10, 10, 10, 0.98)';
+    //     } else {
+    //         header.style.background = 'rgba(10, 10, 10, 0.95)';
+    //     }
+    // });
 
     // Animation on scroll
     const observerOptions = {
@@ -294,3 +294,57 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+
+// Добавьте этот код перед закрывающим тегом </body>
+const themeToggle = document.createElement('button');
+themeToggle.className = 'theme-toggle';
+themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+document.body.appendChild(themeToggle);
+
+// Проверяем сохраненную тему или системные настройки
+function getPreferredTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        return savedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+// Устанавливаем тему
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = themeToggle.querySelector('i');
+    
+    if (theme === 'light') {
+        icon.className = 'fas fa-moon';
+        icon.title = 'Переключить на темную тему';
+    } else {
+        icon.className = 'fas fa-sun';
+        icon.title = 'Переключить на светлую тему';
+    }
+    
+    localStorage.setItem('theme', theme);
+}
+
+// Переключение темы
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    const preferredTheme = getPreferredTheme();
+    setTheme(preferredTheme);
+    
+    themeToggle.addEventListener('click', toggleTheme);
+    
+    // Слушаем изменения системной темы
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('theme')) {
+            setTheme(e.matches ? 'dark' : 'light');
+        }
+    });
+});
