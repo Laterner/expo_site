@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
     app:
         build: ./app
@@ -19,21 +17,7 @@ services:
             - /etc/ssl/mosaction.ru.crt:/etc/ssl/mosaction.ru.crt
             - /etc/ssl/mosaction.ru.key:/etc/ssl/mosaction.ru.key
             - /etc/ssl/ca.crt:/etc/ssl/ca.crt
-            # - ./nginx/cert.pem:/etc/cert.pem
-            # - ./nginx/key.pem:/etc/key.pem
         ports:
             - "80:80"
             - "443:443"
         restart: unless-stopped
-
-    # certbot:
-    #     ports:
-    #         - "6000:80"
-    #     env_file:
-    #         - .env
-    #     # и снова мониторуем директорию nginx
-    #     volumes:
-    #         - ./nginx/:/etc/nginx/
-    #     build:
-    #         context: ./certbot
-    #         dockerfile: Dockerfile
